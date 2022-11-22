@@ -9,6 +9,7 @@ pub enum ErrorKind {
     YamlError,
     MacError,
     UrlError,
+    ChaChaError,
 }
 
 impl std::fmt::Display for ErrorKind {
@@ -23,6 +24,7 @@ impl std::fmt::Display for ErrorKind {
             ErrorKind::YamlError => f.write_str("YamlError"),
             ErrorKind::MacError => f.write_str("MacError"),
             ErrorKind::UrlError => f.write_str("UrlError"),
+            ErrorKind::ChaChaError => f.write_str("ChaChaError"),
         }
     }
 }
@@ -91,5 +93,11 @@ impl From<crate::mac::Error> for Error {
 impl From<url::ParseError> for Error {
     fn from(err: url::ParseError) -> Self {
         Error::new(ErrorKind::UrlError).with_error(err)
+    }
+}
+
+impl From<chacha20poly1305::Error> for Error {
+    fn from(err: chacha20poly1305::Error) -> Self {
+        Error::new(ErrorKind::ChaChaError).with_error(err)
     }
 }
