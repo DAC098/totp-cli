@@ -1,5 +1,6 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
+/// retrieves the current UNIX EPOCH
 pub fn unix_epoch_sec_now() -> Option<u64> {
     let now = SystemTime::now();
 

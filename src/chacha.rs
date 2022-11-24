@@ -4,12 +4,18 @@ use rand::RngCore;
 
 use crate::error::{Result, Error, ErrorKind};
 
+/// key length required for chacha encryption
 pub const KEY_LEN: usize = 32;
+/// nonce length required for chacha encryption
 pub const NONCE_LEN: usize = 24;
 
 pub type Key = [u8; KEY_LEN];
 pub type Nonce = [u8; NONCE_LEN];
 
+/// created a valid key from the variable length secret
+/// 
+/// used HKDF with SHA3_256 to create a valid length key for use in chacha
+/// encryption
 pub fn make_key<S>(secret: S) -> Result<Key>
 where
     S: AsRef<[u8]>
@@ -26,6 +32,9 @@ where
     Ok(output)
 }
 
+/// creates a random nonce of given size for chacha encryption
+/// 
+/// uses OsRng to fill the nonce array
 pub fn make_nonce() -> Result<Nonce> {
     let mut nonce = [0u8; NONCE_LEN];
 
@@ -34,6 +43,11 @@ pub fn make_nonce() -> Result<Nonce> {
     Ok(nonce)
 }
 
+/// decrypts data using chacha
+/// 
+/// with the provided key and nonce, the data given will attempt to be 
+/// decrypted using XChaCha20Poly1305. returns the decrypted data as a
+/// byte vector
 pub fn decrypt_data<D>(
     key: &Key,
     nonce: &Nonce,
@@ -59,6 +73,10 @@ where
         })
 }
 
+/// encrypts data using chacha
+/// 
+/// similar to the decrypt in terms of arguments and will, as the name implies,
+/// encrypt the given data
 pub fn encrypt_data<D>(
     key: &Key,
     nonce: &Nonce,

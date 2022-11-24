@@ -9,6 +9,11 @@ mod time;
 mod otp;
 mod file;
 
+/// represents a totp credential
+/// 
+/// secret, algo, digits, and step are all required in order to properly
+/// generate totp codes. the issuer and username are also provided to help
+/// with identifying each record.
 #[derive(Debug, Serialize, Deserialize)]
 struct TotpRecord {
     secret: Vec<u8>,
@@ -19,8 +24,10 @@ struct TotpRecord {
     username: Option<String>,
 }
 
+/// type alias for hashmap records with a string name
 type TotpRecordDict = HashMap<String, TotpRecord>;
 
+/// accepted file types for a totp file
 #[derive(PartialEq)]
 enum TotpFileType {
     JSON,
@@ -28,6 +35,18 @@ enum TotpFileType {
     TOTP,
 }
 
+/// a file that stores totp credentials
+/// 
+/// stores the path, file type, records, and potential cryptography key for a
+/// desired file.
+/// 
+/// the path is assumed to be fully parsed(?) and lead to the actual location 
+/// of the file in the system.
+/// 
+/// the key is used to decrypt and encrypt the file if necessary, only being 
+/// stored so the user does not have to provide the password twice. it is not
+/// the actual secret provided but what is generated from [chacha::make_key]
+/// function
 struct TotpFile {
     path: std::path::PathBuf,
     file_type: TotpFileType,
@@ -37,6 +56,9 @@ struct TotpFile {
 
 impl TotpFile {
 
+    /// prompts the user for the secret used to encrypt the file
+    /// 
+    /// this can probably be pulled out since it is fairly generic
     fn get_secret_stdin() -> error::Result<String> {
         let stdin = std::io::stdin();
         let mut stdout = std::io::stdout();
@@ -49,6 +71,10 @@ impl TotpFile {
         Ok(input)
     }
 
+    /// attempts to parse and decrypt the data stored in the file
+    /// 
+    /// the nonce is stored in the first 24 bytes of the file. the rest is the
+    /// encrypted data
     fn decrypt(key: &chacha::Key, data: Vec<u8>) -> error::Result<TotpRecordDict> {
         let mut encrypted: Vec<u8> = Vec::with_capacity(data.len() - chacha::NONCE_LEN);
         let mut nonce = [0u8; chacha::NONCE_LEN];
@@ -73,6 +99,10 @@ impl TotpFile {
         Ok(records)
     }
 
+    /// encrypts the given records
+    /// 
+    /// it will create a byte vector with the nonce stored in the first 24
+    /// bytes and then store the encrypted data in the rest.
     fn encrypt(key: &chacha::Key, records: &TotpRecordDict) -> error::Result<Vec<u8>> {
         let nonce = chacha::make_nonce()?;
         let data = serde_json::to_vec(records)?;
@@ -91,6 +121,7 @@ impl TotpFile {
         Ok(contents)
     }
 
+    /// helper to create an io reader for a given file
     #[inline]
     fn get_reader<P>(path: P) -> error::Result<impl std::io::Read>
     where
@@ -102,6 +133,7 @@ impl TotpFile {
         Ok(std::io::BufReader::new(file))
     }
 
+    /// helper to create an io writer for a given file
     #[inline]
     fn get_writer<P>(path: P) -> error::Result<impl std::io::Write>
     where
@@ -113,6 +145,11 @@ impl TotpFile {
         Ok(std::io::BufWriter::new(file))
     }
 
+    /// creates a TotpFile struct from a given path
+    /// 
+    /// if the file provided as a totp extension then it will treat it as an
+    /// encrpyted file and will prompt the user for the secret used to
+    /// encrypt the data on the file
     fn from_path<P>(path: P) -> error::Result<TotpFile>
     where
         P: AsRef<std::path::Path>
@@ -162,10 +199,15 @@ impl TotpFile {
         }
     }
 
+    /// takes the records of the file and discards the rest
     fn take_records(self) -> TotpRecordDict {
         self.records
     }
 
+    /// updates the file with the information stored
+    /// 
+    /// if the file was decrypted then it will attempt to encrypt the new data
+    /// in the previous file
     fn update_file(&self) -> error::Result<()> {
         match self.file_type {
             TotpFileType::YAML => {
@@ -209,6 +251,7 @@ fn main() {
     }
 }
 
+/// processes the first argument and then runs the desired operation
 fn run(mut args: Args) -> error::Result<()> {
     let Some(op) = args.next() else {
         return Err(error::Error::new(error::ErrorKind::InvalidOp)
@@ -236,6 +279,7 @@ fn run(mut args: Args) -> error::Result<()> {
     }
 }
 
+/// common error for providing an invalid argument
 fn invalid_argument(arg: String) -> error::Error {
     let mut msg = String::from("given invalid argument. \"");
     msg.push_str(&arg);
@@ -245,6 +289,7 @@ fn invalid_argument(arg: String) -> error::Error {
         .with_message(msg)
 }
 
+/// common error when the desired name was not found
 fn name_not_found(name: String) -> error::Error {
     let mut msg = String::from("given name does not exist in file. \"");
     msg.push_str(&name);
@@ -254,6 +299,7 @@ fn name_not_found(name: String) -> error::Error {
         .with_message(msg)
 }
 
+/// counts total number of UTF-8 characters in a string
 fn total_chars(string: &String) -> usize {
     let mut total = 0;
 
@@ -264,6 +310,9 @@ fn total_chars(string: &String) -> usize {
     total
 }
 
+/// attempts to find the longest string in an iterator
+/// 
+/// can optionally specify a starting point or default to 0
 fn longest_value<'a>(iter: impl Iterator<Item = &'a String>, starting: Option<usize>) -> usize {
     let mut longest_key = starting.unwrap_or(0);
 
@@ -278,6 +327,9 @@ fn longest_value<'a>(iter: impl Iterator<Item = &'a String>, starting: Option<us
     longest_key
 }
 
+/// pads the given key to a desired length
+/// 
+/// format is "{key} {padding}" with a padding character of '-'
 fn pad_key<K>(key: K, len: &usize) -> String
 where
     K: AsRef<str>
@@ -299,6 +351,7 @@ where
     rtn
 }
 
+/// prints the gnerated code of a [TotpRecord]
 fn print_totp_code(_key: &String, record: &TotpRecord) -> () {
     let now = time::unix_epoch_sec_now().unwrap();
     let data = (now / record.step).to_be_bytes();
@@ -312,6 +365,7 @@ fn print_totp_code(_key: &String, record: &TotpRecord) -> () {
     println!("{}\nseconds left: {}s\n    finished: {:#?}", code, time_left, perf_end.duration_since(perf_start));
 }
 
+/// prints the whole [TotpRecord]
 fn print_totp_record(_key: &String, record: &TotpRecord) -> () {
     let b32 = data_encoding::BASE32.encode(&record.secret);
     println!("base32: {}", b32);
@@ -338,6 +392,7 @@ fn print_totp_record(_key: &String, record: &TotpRecord) -> () {
     }
 }
 
+/// prints a list of records with their key and desired print function
 fn print_records_list(
     totp_dict: &TotpRecordDict, 
     longest_key: &usize, 
@@ -358,6 +413,7 @@ fn print_records_list(
     }
 }
 
+/// gets the canonicalized version of the given path
 #[inline]
 fn get_full_path(path: PathBuf) -> error::Result<PathBuf> {
     let to_check = if !path.is_absolute() {
@@ -373,12 +429,14 @@ fn get_full_path(path: PathBuf) -> error::Result<PathBuf> {
     Ok(rtn)
 }
 
+/// default file path for a records file
 fn get_default_file_path() -> error::Result<PathBuf> {
     let mut cwd = std::env::current_dir()?;
     cwd.push("records.yaml");
     Ok(cwd)
 }
 
+/// parses the option command line argument for a file path
 fn parse_file_path(path: Option<String>) -> error::Result<PathBuf> {
     if let Some(p) = path {
         get_full_path(PathBuf::from(p))
@@ -387,6 +445,12 @@ fn parse_file_path(path: Option<String>) -> error::Result<PathBuf> {
     }
 }
 
+/// prints generated codes the terminal
+/// 
+/// options
+///   -w | --watch  prints codes to the terminal every second
+///   -f | --file   specifies which file to open and view codes for
+///   -n | --name   attempts to find the desired records in a given file
 fn op_codes(mut args: Args) -> error::Result<()> {
     let mut watch = false;
     let mut name: Option<String> = None;
@@ -471,6 +535,14 @@ fn op_codes(mut args: Args) -> error::Result<()> {
     Ok(())
 }
 
+/// genrates a new encrpyted totp file
+/// 
+/// options
+///   -d | --directory  the specified directory to create the new file
+///   -n | --name       the name of the file REQUIRED
+/// 
+/// the user will be prompted to enter in a secret used to encrypt the file
+/// specified
 fn op_new(mut args: Args) -> error::Result<()> {
     let mut name: Option<String> = None;
     let mut dir: Option<String> = None;
@@ -538,6 +610,7 @@ fn op_new(mut args: Args) -> error::Result<()> {
     Ok(())
 }
 
+/// parses a BASE32 encoded string
 fn parse_secret<S>(secret: S) -> error::Result<Vec<u8>>
 where
     S: AsRef<[u8]>
@@ -552,6 +625,7 @@ where
     }
 }
 
+/// parses a string to a valid [Algo]
 fn parse_algo<A>(algo: A) -> error::Result<otp::Algo>
 where
     A: AsRef<str>
@@ -564,6 +638,7 @@ where
     }
 }
 
+/// parses a string to a valid u32
 fn parse_digits<D>(digits: D) -> error::Result<u32>
 where
     D: AsRef<str>
@@ -576,6 +651,7 @@ where
     }
 }
 
+/// parses a string to a valid u64
 fn parse_step<S>(step: S) -> error::Result<u64>
 where
     S: AsRef<str>
@@ -588,6 +664,10 @@ where
     }
 }
 
+/// attempts to retrieve the next argument
+/// 
+/// if the argument is not present then it will return an error indicating the
+/// argument is missing and provide the name of the argument
 fn get_arg_value<N>(args: &mut Args, name: N) -> error::Result<String>
 where
     N: AsRef<str>
@@ -604,6 +684,22 @@ where
     Ok(v)
 }
 
+/// adds a new record to a totp file
+/// 
+/// options
+///   -n | --name      the name of the new record REQUIRED
+///   -f | --file      the desired file to store the new record in
+///   -s | --secret    a valid BASE43 string REQUIRED
+///   -a | --algo      the desired algorithm used to generate codes with. 
+///                    defaults to SHA1
+///   -d | --digits    number of digits to generate for the codes. defaults to
+///                    6
+///   -t | -p | --step | --period
+///                    the step between generating new codes. defaults to 30
+///   -i | --issuer    the issuer that the code is for
+///   -u | --username  the username associated with the codes
+/// 
+/// the manual process of adding new codes to a desired totp file
 fn op_add(mut args: Args) -> error::Result<()> {
     let mut file_path: Option<String> = None;
     let mut name: Option<String> = None;
@@ -688,6 +784,15 @@ fn op_add(mut args: Args) -> error::Result<()> {
     Ok(())
 }
 
+/// adds a new record to a totp file using url format
+/// 
+/// options
+///   -f | --file  the desired file to store the new record in
+///   --url        the url to parse REQUIRED
+///   -n | --name  the name of the new record. overrides the url value if
+///                present
+///   -v | --view  will not add the record and only show the details of the
+///                record
 fn op_add_url(mut args: Args) -> error::Result<()> {
     let mut view_only = false;
     let mut file_path: Option<String> = None;
@@ -825,6 +930,17 @@ fn op_add_url(mut args: Args) -> error::Result<()> {
     Ok(())
 }
 
+/// adds a new record to a totp file with google authenticator defaults
+/// 
+/// it will assign certain values to a specified default for the application
+/// - digits = 6
+/// - step = 30
+/// - algo = SHA1
+/// 
+/// options
+///   -n | --name    the name of the record. default is "Unknown"
+///   -f | --file    the desired file to store the new record in
+///   -s | --secret  the secret to assign the new record REQUIRED
 fn op_add_gauth(mut args: Args) -> error::Result<()> {
     let mut file_path: Option<String> = None;
     let mut secret: Option<Vec<u8>> = None;
@@ -878,6 +994,11 @@ fn op_add_gauth(mut args: Args) -> error::Result<()> {
     Ok(())
 }
 
+/// views records of a totp file
+/// 
+/// options
+///   -n | --name  name of a specific record to view
+///   -f | --file  the desired file to view records from
 fn op_view(mut args: Args) -> error::Result<()> {
     let mut name: Option<String> = None;
     let mut file_path: Option<String> = None;
@@ -918,6 +1039,18 @@ fn op_view(mut args: Args) -> error::Result<()> {
     Ok(())
 }
 
+/// updates a specific record to the desired values
+/// 
+/// options
+///   -n | --name      the name of the record to update REQUIRED
+///   -f | --file      the desired file to update a record in
+///   -s | --secret    updates secret on record
+///   -a | --algo      updates algo on record
+///   -d | --digits    updates digits on record
+///   -t | --step | -p | --period
+///                    updates step on record
+///   -i | --issuer    updates issuer on record
+///   -u | --username  updates username on record
 fn op_edit(mut args: Args) -> error::Result<()> {
     let mut file_path: Option<String> = None;
     let mut name: Option<String> = None;
@@ -1015,6 +1148,12 @@ fn op_edit(mut args: Args) -> error::Result<()> {
     Ok(())
 }
 
+/// renames a record to a new name
+/// 
+/// options
+///   -f | --file  the dsired file to rename a record in
+///   --original   the original name of the record REQUIRED
+///   --renamed    the new name of the record REQUIRED
 fn op_rename(mut args: Args) -> error::Result<()> {
     let mut file_path: Option<String> = None;
     let mut original: Option<String> = None;
@@ -1064,6 +1203,11 @@ fn op_rename(mut args: Args) -> error::Result<()> {
     Ok(())
 }
 
+/// drops a record from a totp file
+/// 
+/// options
+///   -f | --file  the desired file to drop a record from
+///   -n | --name  the name of the record to drop REQUIRED
 fn op_drop(mut args: Args) -> error::Result<()> {
     let mut file_path: Option<String> = None;
     let mut name: Option<String> = None;

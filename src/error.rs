@@ -1,3 +1,4 @@
+/// the kinds of errors that the application can return
 #[derive(Debug)]
 pub enum ErrorKind {
     InvalidOp,
@@ -31,6 +32,11 @@ impl std::fmt::Display for ErrorKind {
 
 type BoxDynError = Box<dyn std::error::Error + Send + Sync>;
 
+/// the simple error struct used by the application
+/// 
+/// these errors are not really meant to be handled and more for just
+/// indicating that there was an error. capable of storing a message
+/// and the error the created the struct if provided
 pub struct Error {
     pub kind: ErrorKind,
     pub message: Option<String>,

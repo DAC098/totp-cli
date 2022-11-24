@@ -1,5 +1,6 @@
 use hmac::{Mac, Hmac};
 
+/// simple error struct for unifying MAC errors
 #[derive(Debug)]
 pub enum Error {
     InvalidKeyLength

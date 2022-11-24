@@ -7,6 +7,7 @@ pub const DEFAULT_STEP: u64 = 30;
 /// default digit legnth for totp
 pub const DEFAULT_DIGITS: u32 = 8;
 
+/// the available algorithms for otp
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Algo {
     SHA1,
@@ -16,6 +17,9 @@ pub enum Algo {
 
 impl Algo {
 
+    /// attempts to return an Algo from the given string
+    /// 
+    /// using an error here to be consistent with the TrimFrom impls
     pub fn try_from_str<S>(v: S) -> std::result::Result<Algo, ()>
     where
         S: AsRef<str>
@@ -28,6 +32,7 @@ impl Algo {
         }
     }
 
+    /// returns the string representation of the Algo
     pub fn as_str(&self) -> &str {
         match self {
             Algo::SHA1 => "SHA1",
@@ -36,6 +41,7 @@ impl Algo {
         }
     }
 
+    /// returns the owned string representation of the algo
     pub fn into_string(self) -> String {
         self.as_str().to_owned()
     }
@@ -66,6 +72,7 @@ impl Into<String> for Algo
     }
 }
 
+/// runs the actual mac algorithm specified
 fn one_off(algo: &Algo, secret: &[u8], data: &[u8]) -> mac::Result<Vec<u8>> {
     match algo {
         Algo::SHA1 => mac::one_off_sha1(secret, data),
@@ -123,7 +130,7 @@ where
     generate_integer_string(&Algo::SHA1, secret.as_ref(), digits, &counter_bytes)
 }
 
-// create an totp hash
+/// create an totp hash
 pub fn _totp<S>(algorithm: &Algo, secret: S, digits: u32, step: u64, time: u64) -> String
 where
     S: AsRef<[u8]>
