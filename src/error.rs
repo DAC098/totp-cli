@@ -107,3 +107,27 @@ impl From<chacha20poly1305::Error> for Error {
         Error::new(ErrorKind::ChaChaError).with_error(err)
     }
 }
+
+pub mod build {
+    use super::{Error, ErrorKind};
+
+    /// common error for providing an invalid argument
+    pub fn invalid_argument(arg: String) -> Error {
+        let mut msg = String::from("given invalid argument. \"");
+        msg.push_str(&arg);
+        msg.push('"');
+
+        return Error::new(ErrorKind::InvalidArgument)
+            .with_message(msg)
+    }
+
+    /// common error when the desired name was not found
+    pub fn name_not_found(name: String) -> Error {
+        let mut msg = String::from("given name does not exist in file. \"");
+        msg.push_str(&name);
+        msg.push('"');
+
+        return Error::new(ErrorKind::InvalidArgument)
+            .with_message(msg)
+    }
+}
