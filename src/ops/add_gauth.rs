@@ -56,7 +56,7 @@ pub fn run(mut args: Args) -> error::Result<()> {
     let record = types::TotpRecord {
         secret,
         digits: 6,
-        step: otp::DEFAULT_STEP,
+        step: 30,
         algo: otp::Algo::SHA1,
         issuer: None,
         username: None,

@@ -74,8 +74,8 @@ pub fn run(mut args: Args) -> error::Result<()> {
     let mut record_key = "Unknown".to_owned();
     let mut record = types::TotpRecord {
         secret: Vec::new(),
-        digits: otp::DEFAULT_DIGITS,
-        step: otp::DEFAULT_STEP,
+        digits: 6,
+        step: 30,
         algo: otp::Algo::SHA1,
         issuer: None,
         username: None,

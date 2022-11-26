@@ -3,9 +3,9 @@ use serde::{Serialize, Deserialize};
 use super::mac;
 
 /// default step for totp
-pub const DEFAULT_STEP: u64 = 30;
+pub const _DEFAULT_STEP: u64 = 30;
 /// default digit legnth for totp
-pub const DEFAULT_DIGITS: u32 = 8;
+pub const _DEFAULT_DIGITS: u32 = 8;
 
 /// the available algorithms for otp
 #[derive(Debug, Serialize, Deserialize)]
