@@ -2,6 +2,7 @@ use std::env::Args;
 
 use crate::error;
 
+mod help;
 mod codes;
 mod new;
 mod add;
@@ -20,6 +21,7 @@ pub fn run(mut args: Args) -> error::Result<()> {
     };
 
     match op.as_str() {
+        "help" => help::run(args),
         "codes" => codes::run(args),
         "new" => new::run(args),
         "add" => add::run(args),
