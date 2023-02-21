@@ -24,5 +24,7 @@ fn main() {
         }
 
         print!("\n");
+
+        ops::help::print_ops();
     }
 }

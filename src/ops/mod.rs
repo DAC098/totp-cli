@@ -2,10 +2,11 @@ use std::env::Args;
 
 use crate::error;
 
-mod help;
+pub mod help;
 mod codes;
 mod new;
 mod add;
+mod add_json;
 mod add_url;
 mod add_gauth;
 mod view;
@@ -25,6 +26,7 @@ pub fn run(mut args: Args) -> error::Result<()> {
         "codes" => codes::run(args),
         "new" => new::run(args),
         "add" => add::run(args),
+        "add-json" => add_json::run(args), 
         "add-url" => add_url::run(args),
         "add-gauth" => add_gauth::run(args),
         "view" => view::run(args),

@@ -2,6 +2,24 @@ use std::env::Args;
 
 use crate::error;
 
+pub fn print_ops() -> () {
+   println!("help [operation]
+
+operations
+
+    codes      prints generated codes to the terminal
+    new        generates a new encrypted totp file
+    add        adds a new record to a totp file
+    add-json   adds a new record to a totp file with a json string
+    add-url    adds a new record to a totp file using url format
+    add-guath  adds a new record to a totp file with google authenticator
+               defaults
+    view       views records of a totp file
+    edit       updates a specific record to the desired values
+    rename     renames a record to a new name
+    drop       drops a record from a totp file");
+}
+
 pub fn run(mut args: Args) -> error::Result<()> {
     let mut op: Option<String> = None;
 
@@ -65,6 +83,29 @@ options
 
 note:
 the user will be prompted to enter in a secret used to encrypt the file 
+specified")
+            },
+            "add-json" => {
+                println!("add-json [options]
+
+adds a new record to a totp file using a json string. json fields
+secret: array u8
+algo: string \"SHA1\", \"SHA256\", \"SHA512\"
+      default \"SHA1\"
+digits: u32 default 6
+step: u64 default 30
+issuer: string optional
+username: string optional
+
+options
+    -f | --file  the desired file to store the new record it
+    -n | --name  the name of the new record REQUIRED
+    -v | --view  will not add the record and only show the details of the
+                 record
+    --json       the json to parse REQUIRED
+
+note:
+the user will be prompted to enter in a secret used to encrypt the file
 specified")
             },
             "add-url" => {
@@ -176,20 +217,7 @@ specified")
             }
         }
     } else {
-        println!("help [operation]
-
-operations
-
-    codes      prints generated codes to the terminal
-    new        generates a new encrypted totp file
-    add        adds a new record to a totp file
-    add-url    adds a new record to a totp file using url format
-    add-guath  adds a new record to a totp file with google authenticator
-               defaults
-    view       views records of a totp file
-    edit       updates a specific record to the desired values
-    rename     renames a record to a new name
-    drop       drops a record from a totp file")
+        print_ops();
     }
 
     Ok(())

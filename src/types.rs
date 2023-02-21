@@ -7,6 +7,20 @@ use crate::otp;
 use crate::error::{Result, Error, ErrorKind};
 use crate::cli;
 
+///default algo value for de/serialization
+fn default_algo() -> otp::Algo {
+    otp::Algo::SHA1
+}
+
+/// default digits value for de/serialization
+fn default_digits() -> u32 {
+    6
+}
+
+/// default step value for de/serialization
+fn default_step() -> u64 {
+    30
+}
 
 /// represents a totp credential
 /// 
@@ -16,8 +30,11 @@ use crate::cli;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TotpRecord {
     pub secret: Vec<u8>,
+    #[serde(default = "default_algo")]
     pub algo: otp::Algo,
+    #[serde(default = "default_digits")]
     pub digits: u32,
+    #[serde(default = "default_step")]
     pub step: u64,
     pub issuer: Option<String>,
     pub username: Option<String>,
