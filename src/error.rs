@@ -1,9 +1,7 @@
 /// the kinds of errors that the application can return
 #[derive(Debug)]
 pub enum ErrorKind {
-    InvalidOp,
     InvalidExtension,
-    MissingArgument,
     InvalidArgument,
     IoError,
     JsonError,
@@ -18,8 +16,6 @@ impl std::fmt::Display for ErrorKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ErrorKind::InvalidExtension => f.write_str("InvalidExtension"),
-            ErrorKind::InvalidOp => f.write_str("InvalidOp"),
-            ErrorKind::MissingArgument => f.write_str("MissingArgument"),
             ErrorKind::InvalidArgument => f.write_str("InvalidArgument"),
             ErrorKind::IoError => f.write_str("IoError"),
             ErrorKind::JsonError => f.write_str("JsonError"),
@@ -117,15 +113,6 @@ impl From<rand::rand_core::OsError> for Error {
 
 pub mod build {
     use super::{Error, ErrorKind};
-
-    /// common error for providing an invalid argument
-    pub fn invalid_argument(arg: String) -> Error {
-        let mut msg = String::from("given invalid argument. \"");
-        msg.push_str(&arg);
-        msg.push('"');
-
-        return Error::new(ErrorKind::InvalidArgument).with_message(msg);
-    }
 
     /// common error when the desired name was not found
     pub fn name_not_found(name: String) -> Error {

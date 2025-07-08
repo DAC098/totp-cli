@@ -1,5 +1,3 @@
-use std::env::Args;
-
 use crate::cli;
 use crate::error;
 use crate::otp;
@@ -12,49 +10,26 @@ use crate::types;
 /// - digits = 6
 /// - step = 30
 /// - algo = SHA1
-///
-/// options
-///   -n | --name    the name of the record. default is "Unknown"
-///   -f | --file    the desired file to store the new record in
-///   -s | --secret  the secret to assign the new record REQUIRED
-pub fn run(mut args: Args) -> error::Result<()> {
-    let mut file_path: Option<String> = None;
-    let mut secret: Option<Vec<u8>> = None;
-    let mut name = "Unknown".to_owned();
+#[derive(Debug, clap::Args)]
+pub struct AddGauthArgs {
+    /// the name of the new record
+    #[arg(short, long, default_value = "Unknown")]
+    name: String,
 
-    loop {
-        let Some(arg) = args.next() else {
-            break;
-        };
+    /// the desired secret to assign the new record
+    #[arg(short, long)]
+    secret: cli::Base32,
 
-        match arg.as_str() {
-            "-n" | "--name" => {
-                name = cli::get_arg_value(&mut args, "name")?;
-            }
-            "-f" | "--file" => {
-                file_path = Some(cli::get_arg_value(&mut args, "file")?);
-            }
-            "-s" | "--secret" => {
-                let value = cli::get_arg_value(&mut args, "secret")?;
+    #[command(flatten)]
+    file: cli::RecordFile,
+}
 
-                secret = Some(cli::parse_secret(value)?);
-            }
-            _ => {
-                return Err(error::build::invalid_argument(arg));
-            }
-        }
-    }
-
-    let Some(secret) = secret else {
-        return Err(error::Error::new(error::ErrorKind::MissingArgument)
-            .with_message("secret was not specified"));
-    };
-
-    let path = cli::parse_file_path(file_path)?;
-    let mut totp_file = types::TotpFile::from_path(path)?;
+/// adds a new record to a totp file with google authenticator defaults
+pub fn run(AddGauthArgs { name, secret, file }: AddGauthArgs) -> error::Result<()> {
+    let mut totp_file = types::TotpFile::from_path(file.get_file()?)?;
 
     let record = types::TotpRecord {
-        secret,
+        secret: secret.into(),
         digits: 6,
         step: 30,
         algo: otp::Algo::SHA1,

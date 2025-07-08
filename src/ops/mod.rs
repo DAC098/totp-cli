@@ -1,4 +1,4 @@
-use std::env::Args;
+use clap::Subcommand;
 
 use crate::error;
 
@@ -9,37 +9,36 @@ mod add_url;
 mod codes;
 mod drop;
 mod edit;
-pub mod help;
 mod new;
 mod rename;
 mod view;
 
+#[derive(Debug, Subcommand)]
+pub enum OpCmd {
+    Codes(codes::CodesArgs),
+    New(new::NewArgs),
+    Add(add::AddArgs),
+    AddJson(add_json::AddJsonArgs),
+    AddUrl(add_url::AddUrlArgs),
+    AddGauth(add_gauth::AddGauthArgs),
+    View(view::ViewArgs),
+    Edit(edit::EditArgs),
+    Rename(rename::RenameArgs),
+    Drop(drop::DropArgs),
+}
+
 /// processes the first argument and then runs the desired operation
-pub fn run(mut args: Args) -> error::Result<()> {
-    let Some(op) = args.next() else {
-        return Err(
-            error::Error::new(error::ErrorKind::InvalidOp).with_message("no operation specified")
-        );
-    };
-
-    match op.as_str() {
-        "help" => help::run(args),
-        "codes" => codes::run(args),
-        "new" => new::run(args),
-        "add" => add::run(args),
-        "add-json" => add_json::run(args),
-        "add-url" => add_url::run(args),
-        "add-gauth" => add_gauth::run(args),
-        "view" => view::run(args),
-        "edit" => edit::run(args),
-        "rename" => rename::run(args),
-        "drop" => drop::run(args),
-        _ => {
-            let mut msg = String::from("given an unknown operation. \"");
-            msg.push_str(&op);
-            msg.push('"');
-
-            Err(error::Error::new(error::ErrorKind::InvalidOp).with_message(msg))
-        }
+pub fn run(cmd: OpCmd) -> error::Result<()> {
+    match cmd {
+        OpCmd::Codes(args) => codes::run(args),
+        OpCmd::New(args) => new::run(args),
+        OpCmd::Add(args) => add::run(args),
+        OpCmd::AddJson(args) => add_json::run(args),
+        OpCmd::AddUrl(args) => add_url::run(args),
+        OpCmd::AddGauth(args) => add_gauth::run(args),
+        OpCmd::View(args) => view::run(args),
+        OpCmd::Edit(args) => edit::run(args),
+        OpCmd::Rename(args) => rename::run(args),
+        OpCmd::Drop(args) => drop::run(args),
     }
 }

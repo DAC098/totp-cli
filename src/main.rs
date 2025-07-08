@@ -1,30 +1,34 @@
+use clap::Parser;
+
 mod chacha;
 mod cli;
 mod error;
 mod mac;
 mod ops;
 mod otp;
+mod path;
 mod print;
 mod types;
 mod util;
 
-fn main() {
-    let mut args = std::env::args();
-    args.next();
+#[derive(Debug, Parser)]
+struct CliArgs {
+    #[command(subcommand)]
+    op: ops::OpCmd,
+}
 
-    if let Err(err) = ops::run(args) {
+fn main() {
+    let args = CliArgs::parse();
+
+    if let Err(err) = ops::run(args.op) {
         if let Some(msg) = err.message {
-            print!("{}: {}", err.kind, msg);
+            println!("{}: {}", err.kind, msg);
         } else {
-            print!("{}", err.kind);
+            println!("{}", err.kind);
         }
 
         if let Some(src) = err.source {
-            print!("\n{}", src);
+            println!("{}", src);
         }
-
-        print!("\n");
-
-        ops::help::print_ops();
     }
 }

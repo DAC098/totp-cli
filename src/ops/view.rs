@@ -1,5 +1,3 @@
-use std::env::Args;
-
 use crate::cli;
 use crate::error;
 use crate::print;
@@ -7,32 +5,18 @@ use crate::types;
 use crate::util;
 
 /// views records of a totp file
-///
-/// options
-///   -n | --name  name of a specific record to view
-///   -f | --file  the desired file to view records from
-pub fn run(mut args: Args) -> error::Result<()> {
-    let mut name: Option<String> = None;
-    let mut file_path: Option<String> = None;
+#[derive(Debug, clap::Args)]
+pub struct ViewArgs {
+    /// name of a specific record to view
+    #[arg(short, long)]
+    name: Option<String>,
 
-    loop {
-        let Some(arg) = args.next() else {
-            break;
-        };
+    #[command(flatten)]
+    file: cli::RecordFile,
+}
 
-        match arg.as_str() {
-            "-n" | "--name" => {
-                name = Some(cli::get_arg_value(&mut args, "name")?);
-            }
-            "-f" | "--file" => file_path = Some(cli::get_arg_value(&mut args, "file")?),
-            _ => {
-                return Err(error::build::invalid_argument(arg));
-            }
-        }
-    }
-
-    let path = cli::parse_file_path(file_path)?;
-    let totp_file = types::TotpFile::from_path(path)?;
+pub fn run(ViewArgs { name, file }: ViewArgs) -> error::Result<()> {
+    let totp_file = types::TotpFile::from_path(file.get_file()?)?;
 
     if let Some(name) = name {
         if let Some(record) = totp_file.records.get(&name) {

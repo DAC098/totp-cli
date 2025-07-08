@@ -1,6 +1,7 @@
-use std::env::Args;
 use std::time::Duration;
 use std::time::Instant;
+
+use clap::Args;
 
 use crate::cli;
 use crate::error;
@@ -8,40 +9,23 @@ use crate::print;
 use crate::types;
 use crate::util;
 
-/// prints generated codes the terminal
-///
-/// options
-///   -w | --watch  prints codes to the terminal every second
-///   -f | --file   specifies which file to open and view codes for
-///   -n | --name   attempts to find the desired records in a given file
-pub fn run(mut args: Args) -> error::Result<()> {
-    let mut watch = false;
-    let mut name: Option<String> = None;
-    let mut file_path: Option<String> = None;
+/// prints generated codes to the terminal
+#[derive(Debug, Args)]
+pub struct CodesArgs {
+    /// prints codes to the terminal every second
+    #[arg(short, long)]
+    watch: bool,
 
-    loop {
-        let Some(arg) = args.next() else {
-            break;
-        };
+    /// attempts to find the desired records in a given file
+    #[arg(short, long)]
+    name: Option<String>,
 
-        match arg.as_str() {
-            "-w" | "--watch" => {
-                watch = true;
-            }
-            "-f" | "--file" => {
-                file_path = Some(cli::get_arg_value(&mut args, "file")?);
-            }
-            "-n" | "--name" => {
-                name = Some(cli::get_arg_value(&mut args, "name")?);
-            }
-            _ => {
-                return Err(error::build::invalid_argument(arg));
-            }
-        }
-    }
+    #[command(flatten)]
+    file: cli::RecordFile,
+}
 
-    let path = cli::parse_file_path(file_path)?;
-    let records = types::TotpFile::from_path(path)?.take_records();
+pub fn run(CodesArgs { watch, name, file }: CodesArgs) -> error::Result<()> {
+    let records = types::TotpFile::from_path(file.get_file()?)?.take_records();
 
     if let Some(name) = name {
         let Some(record) = records.get(&name) else {

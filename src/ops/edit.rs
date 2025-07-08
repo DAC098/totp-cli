@@ -1,5 +1,3 @@
-use std::env::Args;
-
 use crate::cli;
 use crate::error;
 use crate::otp;
@@ -7,82 +5,57 @@ use crate::print;
 use crate::types;
 
 /// updates a specific record to the desired values
-///
-/// options
-///   -n | --name      the name of the record to update REQUIRED
-///   -f | --file      the desired file to update a record in
-///   -s | --secret    updates secret on record
-///   -a | --algo      updates algo on record
-///   -d | --digits    updates digits on record
-///   -t | --step | -p | --period
-///                    updates step on record
-///   -i | --issuer    updates issuer on record
-///   -u | --username  updates username on record
-pub fn run(mut args: Args) -> error::Result<()> {
-    let mut file_path: Option<String> = None;
-    let mut name: Option<String> = None;
-    let mut secret: Option<Vec<u8>> = None;
-    let mut algo: Option<otp::Algo> = None;
-    let mut digits: Option<u32> = None;
-    let mut step: Option<u64> = None;
-    let mut issuer: Option<String> = None;
-    let mut username: Option<String> = None;
+#[derive(Debug, clap::Args)]
+pub struct EditArgs {
+    /// name of the record to update
+    #[arg(short, long)]
+    name: String,
 
-    loop {
-        let Some(arg) = args.next() else {
-            break;
-        };
+    /// updates the secret
+    #[arg(short, long)]
+    secret: Option<cli::Base32>,
 
-        match arg.as_str() {
-            "-n" | "--name" => {
-                name = Some(cli::get_arg_value(&mut args, "name")?);
-            }
-            "-f" | "--file" => {
-                file_path = Some(cli::get_arg_value(&mut args, "file")?);
-            }
-            "-s" | "--secret" => {
-                let value = cli::get_arg_value(&mut args, "secret")?;
+    /// updates the algo
+    #[arg(short, long)]
+    algo: Option<otp::Algo>,
 
-                secret = Some(cli::parse_secret(value)?);
-            }
-            "-a" | "--algo" => {
-                let value = cli::get_arg_value(&mut args, "algo")?;
+    /// updates the digits
+    #[arg(short, long)]
+    digits: Option<u32>,
 
-                algo = Some(cli::parse_algo(value)?);
-            }
-            "-d" | "--digits" => {
-                let value = cli::get_arg_value(&mut args, "digits")?;
+    /// updates the step
+    #[arg(short = 't', long)]
+    step: Option<u64>,
 
-                digits = Some(cli::parse_digits(value)?);
-            }
-            "-t" | "--step" | "-p" | "--period" => {
-                let value = cli::get_arg_value(&mut args, "step/period")?;
+    /// updates the issuer
+    #[arg(short, long)]
+    issuer: Option<String>,
 
-                step = Some(cli::parse_step(value)?);
-            }
-            "-i" | "--issuer" => {
-                issuer = Some(cli::get_arg_value(&mut args, "issuer")?);
-            }
-            "-u" | "--username" => {
-                username = Some(cli::get_arg_value(&mut args, "username")?);
-            }
-            _ => {
-                return Err(error::build::invalid_argument(arg));
-            }
-        }
-    }
+    /// updates the username
+    #[arg(short, long)]
+    username: Option<String>,
 
-    let path = cli::parse_file_path(file_path)?;
-    let mut totp_file = types::TotpFile::from_path(path)?;
+    #[command(flatten)]
+    file: cli::RecordFile,
+}
 
-    let Some(name) = name else {
-        return Err(error::Error::new(error::ErrorKind::MissingArgument)
-            .with_message("name was not specified"));
-    };
+pub fn run(
+    EditArgs {
+        name,
+        secret,
+        algo,
+        digits,
+        step,
+        issuer,
+        username,
+        file,
+    }: EditArgs,
+) -> error::Result<()> {
+    let mut totp_file = types::TotpFile::from_path(file.get_file()?)?;
 
     if let Some(record) = totp_file.records.get_mut(&name) {
         if let Some(secret) = secret {
-            record.secret = secret;
+            record.secret = secret.into();
         }
 
         if let Some(algo) = algo {

@@ -1,5 +1,4 @@
 use std::borrow::Borrow;
-use std::env::Args;
 
 use crate::cli;
 use crate::error;
@@ -8,51 +7,36 @@ use crate::print;
 use crate::types;
 
 /// adds a new record to a totp file using url format
-///
-/// options
-///   -f | --file  the desired file to store the new record in
-///   --url        the url to parse REQUIRED
-///   -n | --name  the name of the new record. overrides the url value if
-///                present
-///   -v | --view  will not add the record and only show the details of the
-///                record
-pub fn run(mut args: Args) -> error::Result<()> {
-    let mut view_only = false;
-    let mut file_path: Option<String> = None;
-    let mut name: Option<String> = None;
-    let mut url: Option<String> = None;
+#[derive(Debug, clap::Args)]
+pub struct AddUrlArgs {
+    /// name of the new record
+    #[arg(short, long)]
+    name: Option<String>,
 
-    loop {
-        let Some(arg) = args.next() else {
-            break;
-        };
+    /// views the record and will not add it to the file
+    #[arg(short, long)]
+    view_only: bool,
 
-        match arg.as_str() {
-            "-f" | "--file" => file_path = Some(cli::get_arg_value(&mut args, "file")?),
-            "--url" => {
-                url = Some(cli::get_arg_value(&mut args, "url")?);
-            }
-            "-n" | "--name" => {
-                name = Some(cli::get_arg_value(&mut args, "name")?);
-            }
-            "-v" | "--view" => {
-                view_only = true;
-            }
-            _ => {
-                return Err(error::build::invalid_argument(arg));
-            }
-        }
-    }
+    /// the url to parse
+    #[arg(long)]
+    url: String,
 
-    let path = cli::parse_file_path(file_path)?;
-    let mut totp_file = types::TotpFile::from_path(path)?;
+    #[command(flatten)]
+    file: cli::RecordFile,
+}
 
-    let url = if let Some(u) = url {
-        url::Url::parse(&u)?
-    } else {
-        return Err(error::Error::new(error::ErrorKind::MissingArgument)
-            .with_message("no otp argument supplied for add op"));
-    };
+/// adds a new record to a totp file using url format
+pub fn run(
+    AddUrlArgs {
+        mut name,
+        view_only,
+        url,
+        file,
+    }: AddUrlArgs,
+) -> error::Result<()> {
+    let mut totp_file = types::TotpFile::from_path(file.get_file()?)?;
+
+    let url = url::Url::parse(&url)?;
 
     if url.scheme() != "otpauth" {
         return Err(error::Error::new(error::ErrorKind::UrlError)

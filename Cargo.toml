@@ -20,3 +20,4 @@ serde_json = { version = "1.0" }
 url = "2"
 percent-encoding = { version = "2.2.0" }
 serde_yml = "0.0.12"
+clap = { version = "4", features = ["derive", "wrap_help"] }

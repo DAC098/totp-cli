@@ -8,7 +8,8 @@ pub const _DEFAULT_STEP: u64 = 30;
 pub const _DEFAULT_DIGITS: u32 = 8;
 
 /// the available algorithms for otp
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, clap::ValueEnum)]
+#[value(rename_all = "UPPER")]
 pub enum Algo {
     SHA1,
     SHA256,

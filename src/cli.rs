@@ -1,37 +1,54 @@
 use std::io::Write;
-use std::{env::Args, path::PathBuf};
+use std::path::PathBuf;
 
 use crate::error;
 use crate::otp;
+use crate::path;
 
-/// gets the canonicalized version of the given path
-pub fn get_full_path(path: PathBuf) -> error::Result<PathBuf> {
-    let to_check = if !path.is_absolute() {
-        let mut cwd = std::env::current_dir()?;
-        cwd.push(path);
-        cwd
-    } else {
-        path
-    };
-
-    let rtn = std::fs::canonicalize(to_check)?;
-
-    Ok(rtn)
+#[derive(Debug, clap::Args)]
+pub struct RecordFile {
+    /// specifies which file to open and view codes for
+    #[arg(short, long = "file")]
+    path: Option<PathBuf>,
 }
 
-/// default file path for a records file
-pub fn get_default_file_path() -> error::Result<PathBuf> {
-    let mut cwd = std::env::current_dir()?;
-    cwd.push("records.yaml");
-    Ok(cwd)
+impl RecordFile {
+    pub fn get_file(&self) -> error::Result<PathBuf> {
+        if let Some(path) = &self.path {
+            let rtn = if !path.is_absolute() {
+                let cwd = std::env::current_dir()?;
+
+                path::normalize_from(&cwd, &path)
+            } else {
+                path.clone()
+            };
+
+            Ok(rtn)
+        } else {
+            let cwd = std::env::current_dir()?;
+
+            Ok(cwd.join("records.totp"))
+        }
+    }
 }
 
-/// parses the option command line argument for a file path
-pub fn parse_file_path(path: Option<String>) -> error::Result<PathBuf> {
-    if let Some(p) = path {
-        get_full_path(PathBuf::from(p))
-    } else {
-        get_default_file_path()
+#[derive(Debug, Clone)]
+pub struct Base32(pub Vec<u8>);
+
+impl std::str::FromStr for Base32 {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match data_encoding::BASE32.decode(s.as_bytes()) {
+            Ok(s) => Ok(Self(s)),
+            Err(_) => Err("invalid BASE32 string"),
+        }
+    }
+}
+
+impl From<Base32> for Vec<u8> {
+    fn from(value: Base32) -> Self {
+        value.0
     }
 }
 
@@ -85,25 +102,6 @@ where
         return Err(error::Error::new(error::ErrorKind::InvalidArgument)
             .with_message("step/period is not a valid unsiged integer"));
     }
-}
-
-/// attempts to retrieve the next argument
-///
-/// if the argument is not present then it will return an error indicating the
-/// argument is missing and provide the name of the argument
-pub fn get_arg_value<N>(args: &mut Args, name: N) -> error::Result<String>
-where
-    N: AsRef<str>,
-{
-    let Some(v) = args.next() else {
-        let mut msg = String::from("missing ");
-        msg.push_str(name.as_ref());
-        msg.push_str(" argument value");
-
-        return Err(error::Error::new(error::ErrorKind::MissingArgument).with_message(msg));
-    };
-
-    Ok(v)
 }
 
 /// prompts the user for input with a given message

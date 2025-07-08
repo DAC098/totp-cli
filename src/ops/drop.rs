@@ -1,43 +1,20 @@
-use std::env::Args;
-
 use crate::cli;
 use crate::error;
 use crate::types;
 
 /// drops a record from a totp file
-///
-/// options
-///   -f | --file  the desired file to drop a record from
-///   -n | --name  the name of the record to drop REQUIRED
-pub fn run(mut args: Args) -> error::Result<()> {
-    let mut file_path: Option<String> = None;
-    let mut name: Option<String> = None;
+#[derive(Debug, clap::Args)]
+pub struct DropArgs {
+    /// name of the record to drop
+    #[arg(short, long)]
+    name: String,
 
-    loop {
-        let Some(arg) = args.next() else {
-            break;
-        };
+    #[command(flatten)]
+    file: cli::RecordFile,
+}
 
-        match arg.as_str() {
-            "-f" | "--file" => {
-                file_path = Some(cli::get_arg_value(&mut args, "file")?);
-            }
-            "-n" | "--name" => {
-                name = Some(cli::get_arg_value(&mut args, "name")?);
-            }
-            _ => {
-                return Err(error::build::invalid_argument(arg));
-            }
-        }
-    }
-
-    let path = cli::parse_file_path(file_path)?;
-    let mut totp_file = types::TotpFile::from_path(path)?;
-
-    let Some(name) = name else {
-        return Err(error::Error::new(error::ErrorKind::MissingArgument)
-            .with_message("name was not specified"));
-    };
+pub fn run(DropArgs { name, file }: DropArgs) -> error::Result<()> {
+    let mut totp_file = types::TotpFile::from_path(file.get_file()?)?;
 
     let Some(_record) = totp_file.records.remove(&name) else {
         return Err(error::build::name_not_found(name));
