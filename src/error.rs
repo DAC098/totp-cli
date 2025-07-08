@@ -11,6 +11,7 @@ pub enum ErrorKind {
     MacError,
     UrlError,
     ChaChaError,
+    RandError,
 }
 
 impl std::fmt::Display for ErrorKind {
@@ -26,6 +27,7 @@ impl std::fmt::Display for ErrorKind {
             ErrorKind::MacError => f.write_str("MacError"),
             ErrorKind::UrlError => f.write_str("UrlError"),
             ErrorKind::ChaChaError => f.write_str("ChaChaError"),
+            ErrorKind::RandError => f.write_str("RandError"),
         }
     }
 }
@@ -78,8 +80,8 @@ impl From<std::io::Error> for Error {
     }
 }
 
-impl From<serde_yaml::Error> for Error {
-    fn from(err: serde_yaml::Error) -> Self {
+impl From<serde_yml::Error> for Error {
+    fn from(err: serde_yml::Error) -> Self {
         Error::new(ErrorKind::YamlError).with_error(err)
     }
 }
@@ -105,6 +107,12 @@ impl From<url::ParseError> for Error {
 impl From<chacha20poly1305::Error> for Error {
     fn from(err: chacha20poly1305::Error) -> Self {
         Error::new(ErrorKind::ChaChaError).with_error(err)
+    }
+}
+
+impl From<rand::rand_core::OsError> for Error {
+    fn from(err: rand::rand_core::OsError) -> Self {
+        Error::new(ErrorKind::RandError).with_error(err)
     }
 }
 

@@ -158,7 +158,7 @@ impl TotpFile {
             let ext = ext.to_ascii_lowercase();
 
             if ext.eq("yaml") || ext.eq("yml") {
-                let records = serde_yaml::from_reader(Self::get_reader(&path)?)?;
+                let records = serde_yml::from_reader(Self::get_reader(&path)?)?;
 
                 Ok(TotpFile { 
                     path: path.as_ref().to_owned(),
@@ -211,7 +211,7 @@ impl TotpFile {
     pub fn update_file(&self) -> Result<()> {
         match self.file_type {
             TotpFileType::YAML => {
-                serde_yaml::to_writer(Self::get_writer(&self.path)?, &self.records)?;
+                serde_yml::to_writer(Self::get_writer(&self.path)?, &self.records)?;
             },
             TotpFileType::JSON => {
                 serde_json::to_writer(Self::get_writer(&self.path)?, &self.records)?;

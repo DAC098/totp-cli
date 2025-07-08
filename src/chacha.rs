@@ -1,6 +1,6 @@
 use chacha20poly1305::{XChaCha20Poly1305, aead::Aead, KeyInit};
 use hkdf::Hkdf;
-use rand::RngCore;
+use rand::TryRngCore;
 
 use crate::error::{Result, Error, ErrorKind};
 
@@ -33,18 +33,18 @@ where
 }
 
 /// creates a random nonce of given size for chacha encryption
-/// 
+///
 /// uses OsRng to fill the nonce array
 pub fn make_nonce() -> Result<Nonce> {
     let mut nonce = [0u8; NONCE_LEN];
 
-    rand::rngs::OsRng.fill_bytes(&mut nonce);
+    rand::rngs::OsRng.try_fill_bytes(&mut nonce)?;
 
     Ok(nonce)
 }
 
 /// decrypts data using chacha
-/// 
+///
 /// with the provided key and nonce, the data given will attempt to be 
 /// decrypted using XChaCha20Poly1305. returns the decrypted data as a
 /// byte vector
