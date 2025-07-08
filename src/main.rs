@@ -1,12 +1,12 @@
+mod chacha;
+mod cli;
 mod error;
 mod mac;
-mod chacha;
-mod util;
-mod otp;
-mod types;
-mod cli;
-mod print;
 mod ops;
+mod otp;
+mod print;
+mod types;
+mod util;
 
 fn main() {
     let mut args = std::env::args();

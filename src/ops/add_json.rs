@@ -1,9 +1,9 @@
 use std::env::Args;
 
-use crate::error;
-use crate::types;
 use crate::cli;
+use crate::error;
 use crate::print;
+use crate::types;
 
 pub fn run(mut args: Args) -> error::Result<()> {
     let mut view_only = false;
@@ -17,18 +17,10 @@ pub fn run(mut args: Args) -> error::Result<()> {
         };
 
         match arg.as_str() {
-            "-f" | "--file" => {
-                file_path = Some(cli::get_arg_value(&mut args, "file")?)
-            },
-            "-n" | "--name" => {
-                name = Some(cli::get_arg_value(&mut args, "name")?)
-            },
-            "-v" | "--view" => {
-                view_only = true
-            },
-            "--json" => {
-                json = Some(cli::get_arg_value(&mut args, "json")?)
-            },
+            "-f" | "--file" => file_path = Some(cli::get_arg_value(&mut args, "file")?),
+            "-n" | "--name" => name = Some(cli::get_arg_value(&mut args, "name")?),
+            "-v" | "--view" => view_only = true,
+            "--json" => json = Some(cli::get_arg_value(&mut args, "json")?),
             _ => {
                 return Err(error::build::invalid_argument(arg));
             }
@@ -41,8 +33,8 @@ pub fn run(mut args: Args) -> error::Result<()> {
     let record: types::TotpRecord = if let Some(j) = json {
         serde_json::from_str(&j)?
     } else {
-        return Err(error::Error::new(error::ErrorKind::JsonError)
-            .with_message("given invalid json.
+        return Err(error::Error::new(error::ErrorKind::JsonError).with_message(
+            "given invalid json.
 make sure that that all required fields are present and all values are valid.
 
 secret: array u8
@@ -51,7 +43,8 @@ algo: string \"SHA1\", \"SHA256\", \"SHA512\"
 digits: u32 default 6
 step: u64 default 30
 issuer: string optional
-username: string optional"));
+username: string optional",
+        ));
     };
 
     let record_key = if let Some(name) = name {

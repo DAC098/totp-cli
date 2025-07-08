@@ -35,14 +35,14 @@ impl std::fmt::Display for ErrorKind {
 type BoxDynError = Box<dyn std::error::Error + Send + Sync>;
 
 /// the simple error struct used by the application
-/// 
+///
 /// these errors are not really meant to be handled and more for just
 /// indicating that there was an error. capable of storing a message
 /// and the error the created the struct if provided
 pub struct Error {
     pub kind: ErrorKind,
     pub message: Option<String>,
-    pub source: Option<BoxDynError>
+    pub source: Option<BoxDynError>,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -52,13 +52,13 @@ impl Error {
         Error {
             kind,
             message: None,
-            source: None
+            source: None,
         }
     }
 
     pub fn with_error<E>(mut self, source: E) -> Self
     where
-        E: Into<BoxDynError>
+        E: Into<BoxDynError>,
     {
         self.source = Some(source.into());
         self
@@ -66,7 +66,7 @@ impl Error {
 
     pub fn with_message<M>(mut self, message: M) -> Self
     where
-        M: Into<String>
+        M: Into<String>,
     {
         self.message = Some(message.into());
         self
@@ -75,8 +75,7 @@ impl Error {
 
 impl From<std::io::Error> for Error {
     fn from(err: std::io::Error) -> Self {
-        Error::new(ErrorKind::IoError)
-            .with_error(err)
+        Error::new(ErrorKind::IoError).with_error(err)
     }
 }
 
@@ -125,8 +124,7 @@ pub mod build {
         msg.push_str(&arg);
         msg.push('"');
 
-        return Error::new(ErrorKind::InvalidArgument)
-            .with_message(msg)
+        return Error::new(ErrorKind::InvalidArgument).with_message(msg);
     }
 
     /// common error when the desired name was not found
@@ -135,7 +133,6 @@ pub mod build {
         msg.push_str(&name);
         msg.push('"');
 
-        return Error::new(ErrorKind::InvalidArgument)
-            .with_message(msg)
+        return Error::new(ErrorKind::InvalidArgument).with_message(msg);
     }
 }

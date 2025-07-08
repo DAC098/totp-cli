@@ -1,18 +1,18 @@
 use std::env::Args;
 
-use crate::error;
-use crate::types;
 use crate::cli;
+use crate::error;
 use crate::otp;
 use crate::print;
+use crate::types;
 
 /// adds a new record to a totp file with google authenticator defaults
-/// 
+///
 /// it will assign certain values to a specified default for the application
 /// - digits = 6
 /// - step = 30
 /// - algo = SHA1
-/// 
+///
 /// options
 ///   -n | --name    the name of the record. default is "Unknown"
 ///   -f | --file    the desired file to store the new record in
@@ -30,15 +30,15 @@ pub fn run(mut args: Args) -> error::Result<()> {
         match arg.as_str() {
             "-n" | "--name" => {
                 name = cli::get_arg_value(&mut args, "name")?;
-            },
+            }
             "-f" | "--file" => {
                 file_path = Some(cli::get_arg_value(&mut args, "file")?);
-            },
+            }
             "-s" | "--secret" => {
                 let value = cli::get_arg_value(&mut args, "secret")?;
 
                 secret = Some(cli::parse_secret(value)?);
-            },
+            }
             _ => {
                 return Err(error::build::invalid_argument(arg));
             }
@@ -47,7 +47,7 @@ pub fn run(mut args: Args) -> error::Result<()> {
 
     let Some(secret) = secret else {
         return Err(error::Error::new(error::ErrorKind::MissingArgument)
-            .with_message("secret was not specified"))
+            .with_message("secret was not specified"));
     };
 
     let path = cli::parse_file_path(file_path)?;

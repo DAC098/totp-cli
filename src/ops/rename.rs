@@ -1,11 +1,11 @@
 use std::env::Args;
 
+use crate::cli;
 use crate::error;
 use crate::types;
-use crate::cli;
 
 /// renames a record to a new name
-/// 
+///
 /// options
 ///   -f | --file  the dsired file to rename a record in
 ///   --original   the original name of the record REQUIRED
@@ -23,13 +23,13 @@ pub fn run(mut args: Args) -> error::Result<()> {
         match arg.as_str() {
             "-f" | "--file" => {
                 file_path = Some(cli::get_arg_value(&mut args, "file")?);
-            },
+            }
             "--original" => {
                 original = Some(cli::get_arg_value(&mut args, "original")?);
-            },
+            }
             "--renamed" => {
                 renamed = Some(cli::get_arg_value(&mut args, "renamed")?);
-            },
+            }
             _ => {
                 return Err(error::build::invalid_argument(arg));
             }

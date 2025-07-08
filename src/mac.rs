@@ -1,9 +1,9 @@
-use hmac::{Mac, Hmac};
+use hmac::{Hmac, Mac};
 
 /// simple error struct for unifying MAC errors
 #[derive(Debug)]
 pub enum Error {
-    InvalidKeyLength
+    InvalidKeyLength,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -11,7 +11,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Error::InvalidKeyLength => write!(f, "given key is an invalid length")
+            Error::InvalidKeyLength => write!(f, "given key is an invalid length"),
         }
     }
 }
@@ -57,5 +57,15 @@ macro_rules! hmac_methods {
 }
 
 hmac_methods!(make_sha1, one_off_sha1, one_off_verify_sha1, sha1::Sha1);
-hmac_methods!(make_sha256, one_off_sha256, one_off_verify_sha256, sha3::Sha3_256);
-hmac_methods!(make_sha512, one_off_sha512, one_off_verify_sha512, sha3::Sha3_512);
+hmac_methods!(
+    make_sha256,
+    one_off_sha256,
+    one_off_verify_sha256,
+    sha3::Sha3_256
+);
+hmac_methods!(
+    make_sha512,
+    one_off_sha512,
+    one_off_verify_sha512,
+    sha3::Sha3_512
+);

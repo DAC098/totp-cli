@@ -6,7 +6,7 @@ pub fn unix_epoch_sec_now() -> Option<u64> {
 
     match now.duration_since(UNIX_EPOCH) {
         Ok(dur) => Some(dur.as_secs()),
-        Err(_err) => None
+        Err(_err) => None,
     }
 }
 
@@ -22,7 +22,7 @@ pub fn total_chars(string: &String) -> usize {
 }
 
 /// attempts to find the longest string in an iterator
-/// 
+///
 /// can optionally specify a starting point or default to 0
 pub fn longest_value<'a>(iter: impl Iterator<Item = &'a String>, starting: Option<usize>) -> usize {
     let mut longest_key = starting.unwrap_or(0);
@@ -39,11 +39,11 @@ pub fn longest_value<'a>(iter: impl Iterator<Item = &'a String>, starting: Optio
 }
 
 /// pads the given key to a desired length
-/// 
+///
 /// format is "{key} {padding}" with a padding character of '-'
 pub fn pad_key<K>(key: K, len: &usize) -> String
 where
-    K: AsRef<str>
+    K: AsRef<str>,
 {
     let key_ref = key.as_ref();
     let mut to_append = len - key_ref.len();

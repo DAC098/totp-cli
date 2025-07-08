@@ -1,14 +1,14 @@
 use std::borrow::Borrow;
 use std::env::Args;
 
-use crate::error;
-use crate::types;
 use crate::cli;
-use crate::print;
+use crate::error;
 use crate::otp;
+use crate::print;
+use crate::types;
 
 /// adds a new record to a totp file using url format
-/// 
+///
 /// options
 ///   -f | --file  the desired file to store the new record in
 ///   --url        the url to parse REQUIRED
@@ -28,18 +28,16 @@ pub fn run(mut args: Args) -> error::Result<()> {
         };
 
         match arg.as_str() {
-            "-f" | "--file" => {
-                file_path = Some(cli::get_arg_value(&mut args, "file")?)
-            },
+            "-f" | "--file" => file_path = Some(cli::get_arg_value(&mut args, "file")?),
             "--url" => {
                 url = Some(cli::get_arg_value(&mut args, "url")?);
             }
             "-n" | "--name" => {
                 name = Some(cli::get_arg_value(&mut args, "name")?);
-            },
+            }
             "-v" | "--view" => {
                 view_only = true;
-            },
+            }
             _ => {
                 return Err(error::build::invalid_argument(arg));
             }
@@ -67,8 +65,9 @@ pub fn run(mut args: Args) -> error::Result<()> {
                 .with_message("unknown domain provided in url"));
         }
     } else {
-        return Err(error::Error::new(error::ErrorKind::UrlError)
-            .with_message("no domain provided in url"));
+        return Err(
+            error::Error::new(error::ErrorKind::UrlError).with_message("no domain provided in url")
+        );
     }
 
     let mut record_key = "Unknown".to_owned();
@@ -115,28 +114,28 @@ pub fn run(mut args: Args) -> error::Result<()> {
         match key.borrow() {
             "secret" => {
                 record.secret = cli::parse_secret(value.as_bytes())?;
-            },
+            }
             "digits" => {
                 record.digits = cli::parse_digits(value)?;
-            },
+            }
             "step" | "period" => {
                 record.step = cli::parse_step(value)?;
-            },
+            }
             "algorithm" => {
                 record.algo = cli::parse_algo(value)?;
-            },
+            }
             "issuer" => {
                 match percent_encoding::percent_decode_str(value.borrow()).decode_utf8() {
                     Ok(i) => {
                         record.issuer = Some(i.into_owned());
-                    },
+                    }
                     Err(err) => {
                         return Err(error::Error::new(error::ErrorKind::UrlError)
                             .with_message("issuer argument contains invalid UTF-8 characters")
                             .with_error(err))
                     }
                 };
-            },
+            }
             _ => {
                 println!("unknown url query key: {}", key);
             }

@@ -2,14 +2,14 @@ use std::env::Args;
 use std::time::Duration;
 use std::time::Instant;
 
-use crate::error;
 use crate::cli;
-use crate::types;
+use crate::error;
 use crate::print;
+use crate::types;
 use crate::util;
 
 /// prints generated codes the terminal
-/// 
+///
 /// options
 ///   -w | --watch  prints codes to the terminal every second
 ///   -f | --file   specifies which file to open and view codes for
@@ -27,13 +27,13 @@ pub fn run(mut args: Args) -> error::Result<()> {
         match arg.as_str() {
             "-w" | "--watch" => {
                 watch = true;
-            },
+            }
             "-f" | "--file" => {
                 file_path = Some(cli::get_arg_value(&mut args, "file")?);
-            },
+            }
             "-n" | "--name" => {
                 name = Some(cli::get_arg_value(&mut args, "name")?);
-            },
+            }
             _ => {
                 return Err(error::build::invalid_argument(arg));
             }
@@ -61,7 +61,11 @@ pub fn run(mut args: Args) -> error::Result<()> {
                 let end = Instant::now();
                 let duration = end.duration_since(start);
 
-                println!("\n{}\nfinished: {:#?}", util::pad_key("INFO", &longest_key), duration);
+                println!(
+                    "\n{}\nfinished: {:#?}",
+                    util::pad_key("INFO", &longest_key),
+                    duration
+                );
 
                 if let Some(wait) = Duration::from_secs(1).checked_sub(duration) {
                     std::thread::sleep(wait);
@@ -84,7 +88,11 @@ pub fn run(mut args: Args) -> error::Result<()> {
                 let end = Instant::now();
                 let duration = end.duration_since(start);
 
-                println!("\n{}\nfinished: {:#?}", util::pad_key("INFO", &longest_key), duration);
+                println!(
+                    "\n{}\nfinished: {:#?}",
+                    util::pad_key("INFO", &longest_key),
+                    duration
+                );
 
                 if let Some(wait) = Duration::from_secs(1).checked_sub(duration) {
                     std::thread::sleep(wait);

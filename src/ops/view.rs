@@ -1,13 +1,13 @@
 use std::env::Args;
 
-use crate::error;
 use crate::cli;
+use crate::error;
 use crate::print;
 use crate::types;
 use crate::util;
 
 /// views records of a totp file
-/// 
+///
 /// options
 ///   -n | --name  name of a specific record to view
 ///   -f | --file  the desired file to view records from
@@ -23,10 +23,8 @@ pub fn run(mut args: Args) -> error::Result<()> {
         match arg.as_str() {
             "-n" | "--name" => {
                 name = Some(cli::get_arg_value(&mut args, "name")?);
-            },
-            "-f" | "--file" => {
-                file_path = Some(cli::get_arg_value(&mut args, "file")?)
-            },
+            }
+            "-f" | "--file" => file_path = Some(cli::get_arg_value(&mut args, "file")?),
             _ => {
                 return Err(error::build::invalid_argument(arg));
             }

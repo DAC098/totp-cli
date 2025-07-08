@@ -3,9 +3,9 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 use crate::chacha;
-use crate::otp;
-use crate::error::{Result, Error, ErrorKind};
 use crate::cli;
+use crate::error::{Error, ErrorKind, Result};
+use crate::otp;
 
 ///default algo value for de/serialization
 fn default_algo() -> otp::Algo {
@@ -23,7 +23,7 @@ fn default_step() -> u64 {
 }
 
 /// represents a totp credential
-/// 
+///
 /// secret, algo, digits, and step are all required in order to properly
 /// generate totp codes. the issuer and username are also provided to help
 /// with identifying each record.
@@ -51,14 +51,14 @@ pub enum TotpFileType {
 }
 
 /// a file that stores totp credentials
-/// 
+///
 /// stores the path, file type, records, and potential cryptography key for a
 /// desired file.
-/// 
-/// the path is assumed to be fully parsed(?) and lead to the actual location 
+///
+/// the path is assumed to be fully parsed(?) and lead to the actual location
 /// of the file in the system.
-/// 
-/// the key is used to decrypt and encrypt the file if necessary, only being 
+///
+/// the key is used to decrypt and encrypt the file if necessary, only being
 /// stored so the user does not have to provide the password twice. it is not
 /// the actual secret provided but what is generated from [chacha::make_key]
 /// function
@@ -66,13 +66,12 @@ pub struct TotpFile {
     pub path: std::path::PathBuf,
     pub file_type: TotpFileType,
     pub records: TotpRecordDict,
-    pub key: Option<chacha::Key>
+    pub key: Option<chacha::Key>,
 }
 
 impl TotpFile {
-
     /// attempts to parse and decrypt the data stored in the file
-    /// 
+    ///
     /// the nonce is stored in the first 24 bytes of the file. the rest is the
     /// encrypted data
     fn decrypt(key: &chacha::Key, data: Vec<u8>) -> Result<TotpRecordDict> {
@@ -100,7 +99,7 @@ impl TotpFile {
     }
 
     /// encrypts the given records
-    /// 
+    ///
     /// it will create a byte vector with the nonce stored in the first 24
     /// bytes and then store the encrypted data in the rest.
     fn encrypt(key: &chacha::Key, records: &TotpRecordDict) -> Result<Vec<u8>> {
@@ -125,11 +124,9 @@ impl TotpFile {
     #[inline]
     fn get_reader<P>(path: P) -> Result<impl std::io::Read>
     where
-        P: AsRef<std::path::Path>
+        P: AsRef<std::path::Path>,
     {
-        let file = std::fs::OpenOptions::new()
-            .read(true)
-            .open(path)?;
+        let file = std::fs::OpenOptions::new().read(true).open(path)?;
         Ok(std::io::BufReader::new(file))
     }
 
@@ -137,22 +134,20 @@ impl TotpFile {
     #[inline]
     fn get_writer<P>(path: P) -> Result<impl std::io::Write>
     where
-        P: AsRef<std::path::Path>
+        P: AsRef<std::path::Path>,
     {
-        let file = std::fs::OpenOptions::new()
-            .write(true)
-            .open(path)?;
+        let file = std::fs::OpenOptions::new().write(true).open(path)?;
         Ok(std::io::BufWriter::new(file))
     }
 
     /// creates a TotpFile struct from a given path
-    /// 
+    ///
     /// if the file provided as a totp extension then it will treat it as an
     /// encrpyted file and will prompt the user for the secret used to
     /// encrypt the data on the file
     pub fn from_path<P>(path: P) -> Result<TotpFile>
     where
-        P: AsRef<std::path::Path>
+        P: AsRef<std::path::Path>,
     {
         if let Some(ext) = path.as_ref().extension() {
             let ext = ext.to_ascii_lowercase();
@@ -160,7 +155,7 @@ impl TotpFile {
             if ext.eq("yaml") || ext.eq("yml") {
                 let records = serde_yml::from_reader(Self::get_reader(&path)?)?;
 
-                Ok(TotpFile { 
+                Ok(TotpFile {
                     path: path.as_ref().to_owned(),
                     file_type: TotpFileType::YAML,
                     records,
@@ -205,21 +200,20 @@ impl TotpFile {
     }
 
     /// updates the file with the information stored
-    /// 
+    ///
     /// if the file was decrypted then it will attempt to encrypt the new data
     /// in the previous file
     pub fn update_file(&self) -> Result<()> {
         match self.file_type {
             TotpFileType::YAML => {
                 serde_yml::to_writer(Self::get_writer(&self.path)?, &self.records)?;
-            },
+            }
             TotpFileType::JSON => {
                 serde_json::to_writer(Self::get_writer(&self.path)?, &self.records)?;
-            },
+            }
             TotpFileType::TOTP => {
                 let Some(key) = self.key.as_ref() else {
-                    return Err(Error::new(ErrorKind::ChaChaError)
-                        .with_message("missing key"))
+                    return Err(Error::new(ErrorKind::ChaChaError).with_message("missing key"));
                 };
 
                 let contents = Self::encrypt(key, &self.records)?;

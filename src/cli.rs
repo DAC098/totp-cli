@@ -1,5 +1,5 @@
 use std::io::Write;
-use std::{path::PathBuf, env::Args};
+use std::{env::Args, path::PathBuf};
 
 use crate::error;
 use crate::otp;
@@ -38,22 +38,20 @@ pub fn parse_file_path(path: Option<String>) -> error::Result<PathBuf> {
 /// parses a BASE32 encoded string
 pub fn parse_secret<S>(secret: S) -> error::Result<Vec<u8>>
 where
-    S: AsRef<[u8]>
+    S: AsRef<[u8]>,
 {
     match data_encoding::BASE32.decode(secret.as_ref()) {
         Ok(s) => Ok(s),
-        Err(err) => {
-            Err(error::Error::new(error::ErrorKind::InvalidArgument)
-                .with_message("key is an invalid base32 value")
-                .with_error(err))
-        }
+        Err(err) => Err(error::Error::new(error::ErrorKind::InvalidArgument)
+            .with_message("key is an invalid base32 value")
+            .with_error(err)),
     }
 }
 
 /// parses a string to a valid [Algo]
 pub fn parse_algo<A>(algo: A) -> error::Result<otp::Algo>
 where
-    A: AsRef<str>
+    A: AsRef<str>,
 {
     if let Ok(v) = otp::Algo::try_from_str(algo) {
         Ok(v)
@@ -66,7 +64,7 @@ where
 /// parses a string to a valid u32
 pub fn parse_digits<D>(digits: D) -> error::Result<u32>
 where
-    D: AsRef<str>
+    D: AsRef<str>,
 {
     if let Ok(parsed) = u32::from_str_radix(digits.as_ref(), 10) {
         Ok(parsed)
@@ -79,31 +77,30 @@ where
 /// parses a string to a valid u64
 pub fn parse_step<S>(step: S) -> error::Result<u64>
 where
-    S: AsRef<str>
+    S: AsRef<str>,
 {
     if let Ok(parsed) = u64::from_str_radix(step.as_ref(), 10) {
         Ok(parsed)
     } else {
         return Err(error::Error::new(error::ErrorKind::InvalidArgument)
-            .with_message("step/period is not a valid unsiged integer"))
+            .with_message("step/period is not a valid unsiged integer"));
     }
 }
 
 /// attempts to retrieve the next argument
-/// 
+///
 /// if the argument is not present then it will return an error indicating the
 /// argument is missing and provide the name of the argument
 pub fn get_arg_value<N>(args: &mut Args, name: N) -> error::Result<String>
 where
-    N: AsRef<str>
+    N: AsRef<str>,
 {
     let Some(v) = args.next() else {
         let mut msg = String::from("missing ");
         msg.push_str(name.as_ref());
         msg.push_str(" argument value");
 
-        return Err(error::Error::new(error::ErrorKind::MissingArgument)
-            .with_message(msg))
+        return Err(error::Error::new(error::ErrorKind::MissingArgument).with_message(msg));
     };
 
     Ok(v)
@@ -112,7 +109,7 @@ where
 /// prompts the user for input with a given message
 pub fn get_input<M>(message: M) -> error::Result<String>
 where
-    M: AsRef<str>
+    M: AsRef<str>,
 {
     let stdin = std::io::stdin();
     let mut stdout = std::io::stdout();

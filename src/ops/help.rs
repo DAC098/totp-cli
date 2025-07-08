@@ -3,7 +3,8 @@ use std::env::Args;
 use crate::error;
 
 pub fn print_ops() -> () {
-   println!("help [operation]
+    println!(
+        "help [operation]
 
 operations
 
@@ -17,7 +18,8 @@ operations
     view       views records of a totp file
     edit       updates a specific record to the desired values
     rename     renames a record to a new name
-    drop       drops a record from a totp file");
+    drop       drops a record from a totp file"
+    );
 }
 
 pub fn run(mut args: Args) -> error::Result<()> {
@@ -32,14 +34,15 @@ pub fn run(mut args: Args) -> error::Result<()> {
             op = Some(arg);
         } else {
             return Err(error::Error::new(error::ErrorKind::InvalidArgument)
-                .with_message("operation was already specified"))
+                .with_message("operation was already specified"));
         }
     }
 
     if let Some(op) = op {
         match op.as_str() {
             "codes" => {
-                println!("codes [options]
+                println!(
+                    "codes [options]
 
 prints generated codes to the terminal
 
@@ -50,20 +53,24 @@ options
 
 note:
 the user will be prompted to enter in a secret used to encrypt the file 
-specified");
-            },
+specified"
+                );
+            }
             "new" => {
-                println!("new [options]
+                println!(
+                    "new [options]
 
 generates a new encrypted totp file. the user will be prompted to enter a
 secret in order to encrypt the file.
 
 options
     -d | --directory  the specified directory to create the new file
-    -n | --name       the name of the file REQUIRED");
-            },
+    -n | --name       the name of the file REQUIRED"
+                );
+            }
             "add" => {
-                println!("add [options]
+                println!(
+                    "add [options]
 
 adds a new record to a totp file. default values:
  - digits = 6
@@ -83,10 +90,12 @@ options
 
 note:
 the user will be prompted to enter in a secret used to encrypt the file 
-specified")
-            },
+specified"
+                )
+            }
             "add-json" => {
-                println!("add-json [options]
+                println!(
+                    "add-json [options]
 
 adds a new record to a totp file using a json string. json fields
 secret: array u8
@@ -106,10 +115,12 @@ options
 
 note:
 the user will be prompted to enter in a secret used to encrypt the file
-specified")
-            },
+specified"
+                )
+            }
             "add-url" => {
-                println!("add-url [options]
+                println!(
+                    "add-url [options]
 
 adds a new record to a totp file using url format. default values if the fields
 are not found in the url
@@ -127,10 +138,12 @@ options
 
 note:
 the user will be prompted to enter in a secret used to encrypt the file 
-specified")
-            },
+specified"
+                )
+            }
             "add-gauth" => {
-                println!("add-gauth [options]
+                println!(
+                    "add-gauth [options]
 
 adds a new record to a totp file with google authenticator defaults. it will 
 assign certain values to a specified default for the application.
@@ -145,10 +158,12 @@ options
 
 note:
 the user will be prompted to enter in a secret used to encrypt the file 
-specified")
-            },
+specified"
+                )
+            }
             "view" => {
-                println!("view [options]
+                println!(
+                    "view [options]
 
 views records of a totp file
 
@@ -158,10 +173,12 @@ options
 
 note:
 the user will be prompted to enter in a secret used to encrypt the file 
-specified")
-            },
+specified"
+                )
+            }
             "edit" => {
-                println!("edit [options]
+                println!(
+                    "edit [options]
 
 updates a specific record to the desired values
 
@@ -178,10 +195,12 @@ options
 
 note:
 the user will be prompted to enter in a secret used to encrypt the file 
-specified")
-            },
+specified"
+                )
+            }
             "rename" => {
-                println!("rename [options]
+                println!(
+                    "rename [options]
 
 renames a record to a new name
 
@@ -192,10 +211,12 @@ options
 
 note:
 the user will be prompted to enter in a secret used to encrypt the file 
-specified");
-            },
+specified"
+                );
+            }
             "drop" => {
-                println!("drop [options]
+                println!(
+                    "drop [options]
 
 drops a record from a totp file
 
@@ -205,15 +226,15 @@ options
 
 note:
 the user will be prompted to enter in a secret used to encrypt the file 
-specified")
-            },
+specified"
+                )
+            }
             _ => {
                 let mut msg = String::from("unknown operation provided \"");
                 msg.push_str(&op);
                 msg.push('"');
 
-                return Err(error::Error::new(error::ErrorKind::InvalidArgument)
-                    .with_message(msg))
+                return Err(error::Error::new(error::ErrorKind::InvalidArgument).with_message(msg));
             }
         }
     } else {

@@ -1,13 +1,13 @@
 use std::env::Args;
 
-use crate::error;
-use crate::types;
 use crate::cli;
-use crate::print;
+use crate::error;
 use crate::otp;
+use crate::print;
+use crate::types;
 
 /// updates a specific record to the desired values
-/// 
+///
 /// options
 ///   -n | --name      the name of the record to update REQUIRED
 ///   -f | --file      the desired file to update a record in
@@ -36,33 +36,33 @@ pub fn run(mut args: Args) -> error::Result<()> {
         match arg.as_str() {
             "-n" | "--name" => {
                 name = Some(cli::get_arg_value(&mut args, "name")?);
-            },
+            }
             "-f" | "--file" => {
                 file_path = Some(cli::get_arg_value(&mut args, "file")?);
-            },
+            }
             "-s" | "--secret" => {
                 let value = cli::get_arg_value(&mut args, "secret")?;
 
                 secret = Some(cli::parse_secret(value)?);
-            },
+            }
             "-a" | "--algo" => {
                 let value = cli::get_arg_value(&mut args, "algo")?;
 
                 algo = Some(cli::parse_algo(value)?);
-            },
+            }
             "-d" | "--digits" => {
                 let value = cli::get_arg_value(&mut args, "digits")?;
 
                 digits = Some(cli::parse_digits(value)?);
-            },
+            }
             "-t" | "--step" | "-p" | "--period" => {
                 let value = cli::get_arg_value(&mut args, "step/period")?;
 
                 step = Some(cli::parse_step(value)?);
-            },
+            }
             "-i" | "--issuer" => {
                 issuer = Some(cli::get_arg_value(&mut args, "issuer")?);
-            },
+            }
             "-u" | "--username" => {
                 username = Some(cli::get_arg_value(&mut args, "username")?);
             }

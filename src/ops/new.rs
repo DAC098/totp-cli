@@ -2,17 +2,17 @@ use std::collections::HashMap;
 use std::env::Args;
 use std::path::PathBuf;
 
-use crate::error;
-use crate::cli;
-use crate::types;
 use crate::chacha;
+use crate::cli;
+use crate::error;
+use crate::types;
 
 /// genrates a new encrpyted totp file
-/// 
+///
 /// options
 ///   -d | --directory  the specified directory to create the new file
 ///   -n | --name       the name of the file REQUIRED
-/// 
+///
 /// the user will be prompted to enter in a secret used to encrypt the file
 /// specified
 pub fn run(mut args: Args) -> error::Result<()> {
@@ -27,10 +27,8 @@ pub fn run(mut args: Args) -> error::Result<()> {
         match arg.as_str() {
             "-d" | "--directory" => {
                 dir = Some(cli::get_arg_value(&mut args, "directory")?);
-            },
-            "-n" | "--name" => {
-                name = Some(cli::get_arg_value(&mut args, "name")?)
-            },
+            }
+            "-n" | "--name" => name = Some(cli::get_arg_value(&mut args, "name")?),
             _ => {
                 return Err(error::build::invalid_argument(arg));
             }
@@ -42,10 +40,10 @@ pub fn run(mut args: Args) -> error::Result<()> {
 
         if !path.exists() {
             return Err(error::Error::new(error::ErrorKind::InvalidArgument)
-                .with_message("the given directory does not exist"))
+                .with_message("the given directory does not exist"));
         } else if !path.is_dir() {
             return Err(error::Error::new(error::ErrorKind::InvalidArgument)
-                .with_message("the given directory is not a valid directory"))
+                .with_message("the given directory is not a valid directory"));
         }
 
         path
@@ -55,7 +53,7 @@ pub fn run(mut args: Args) -> error::Result<()> {
 
     let Some(mut name) = name else {
         return Err(error::Error::new(error::ErrorKind::MissingArgument)
-            .with_message("no name was specified"))
+            .with_message("no name was specified"));
     };
 
     name.push_str(".totp");
@@ -64,7 +62,7 @@ pub fn run(mut args: Args) -> error::Result<()> {
 
     if file_path.exists() {
         return Err(error::Error::new(error::ErrorKind::InvalidArgument)
-            .with_message("the specified file already exists"))
+            .with_message("the specified file already exists"));
     }
 
     let secret = cli::get_input("secret")?;
@@ -74,7 +72,7 @@ pub fn run(mut args: Args) -> error::Result<()> {
         path: file_path,
         file_type: types::TotpFileType::TOTP,
         records: HashMap::new(),
-        key: Some(key)
+        key: Some(key),
     };
 
     totp_file.update_file()?;

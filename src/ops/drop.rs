@@ -1,11 +1,11 @@
 use std::env::Args;
 
+use crate::cli;
 use crate::error;
 use crate::types;
-use crate::cli;
 
 /// drops a record from a totp file
-/// 
+///
 /// options
 ///   -f | --file  the desired file to drop a record from
 ///   -n | --name  the name of the record to drop REQUIRED
@@ -21,10 +21,10 @@ pub fn run(mut args: Args) -> error::Result<()> {
         match arg.as_str() {
             "-f" | "--file" => {
                 file_path = Some(cli::get_arg_value(&mut args, "file")?);
-            },
+            }
             "-n" | "--name" => {
                 name = Some(cli::get_arg_value(&mut args, "name")?);
-            },
+            }
             _ => {
                 return Err(error::build::invalid_argument(arg));
             }

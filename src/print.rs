@@ -1,8 +1,8 @@
 use std::time::Instant;
 
+use crate::otp;
 use crate::types::{TotpRecord, TotpRecordDict};
 use crate::util;
-use crate::otp;
 
 /// prints the gnerated code of a [TotpRecord]
 pub fn print_totp_code(_key: &String, record: &TotpRecord) -> () {
@@ -15,7 +15,12 @@ pub fn print_totp_code(_key: &String, record: &TotpRecord) -> () {
 
     let time_left = record.step - (now % record.step);
 
-    println!("{}\nseconds left: {}s\n    finished: {:#?}", code, time_left, perf_end.duration_since(perf_start));
+    println!(
+        "{}\nseconds left: {}s\n    finished: {:#?}",
+        code,
+        time_left,
+        perf_end.duration_since(perf_start)
+    );
 }
 
 /// prints the whole [TotpRecord]
@@ -29,10 +34,10 @@ pub fn print_totp_record(_key: &String, record: &TotpRecord) -> () {
     }
 
     println!(
-        " ({})\ndigits: {}\n  step: {}s\n  algo: {}", 
-        record.secret.len(), 
-        record.digits, 
-        record.step, 
+        " ({})\ndigits: {}\n  step: {}s\n  algo: {}",
+        record.secret.len(),
+        record.digits,
+        record.step,
         record.algo.as_str()
     );
 
@@ -47,9 +52,9 @@ pub fn print_totp_record(_key: &String, record: &TotpRecord) -> () {
 
 /// prints a list of records with their key and desired print function
 pub fn print_records_list(
-    totp_dict: &TotpRecordDict, 
-    longest_key: &usize, 
-    cb: &dyn Fn(&String, &TotpRecord) -> ()
+    totp_dict: &TotpRecordDict,
+    longest_key: &usize,
+    cb: &dyn Fn(&String, &TotpRecord) -> (),
 ) -> () {
     let mut first = true;
 
